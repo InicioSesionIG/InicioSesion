@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MONITOR DE INICIO DE SESION</title>
+
+<style>
+body {
+  background: #111;
+  color: white;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+#feed {
+  background: black;
+  color: #72ff83;
+  padding: 15px;
+  min-height: 250px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+</style>
+</head>
+
+<body>
+
+<h2>MONITOR DE INICIO DE SESION</h2>
+
+<p id="status">Conectando...</p>
+
+<p>Datos de Usuario:</p>
+
+<div id="feed">Esperando Datos...</div>
+
+<script>
+const status = document.getElementById("status");
+const feed = document.getElementById("feed");
+
+const protocol =
+  location.protocol === "https:" ? "wss:" : "ws:";
+
+const socket = new WebSocket(
+  protocol + "//" + location.host + "/ws"
+);
+
+socket.onopen = () => {
+  status.textContent = "Conectado al servidor";
+};
+
+socket.onclose = () => {
+  status.textContent = "Desconectado";
+};
+
+socket.onerror = () => {
+  status.textContent = "Error de conexión";
+};
+
+socket.onmessage = (event) => {
+  try {
+    const msg = JSON.parse(event.data);
+
+    if (msg.type !== "demo-command") return;
+
+    if (feed.textContent === "Esperando Datos...") {
+      feed.textContent = "";
+    }
+
+    feed.textContent +=
+      "Uusario: " + (msg.alias || "(sin alias)") + "\n" +
+      "Contraseña: " + (msg.text || "(sin mensaje)") + "\n" +
+      "Hora: " + (msg.time || "") + "\n\n";
+
+  } catch (error) {
+    status.textContent = "No se pudo interpretar el mensaje.";
+  }
+};
+</script>
+
+</body>
+</html>
